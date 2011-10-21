@@ -2,6 +2,9 @@ package storm.starter;
 
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
+import backtype.storm.StormSubmitter;
+import backtype.storm.generated.AlreadyAliveException;
+import backtype.storm.generated.InvalidTopologyException;
 import backtype.storm.testing.TestWordSpout;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.tuple.Fields;
@@ -27,15 +30,17 @@ public class RollingTopWords {
                  .globalGrouping(3);
         
         
-        
         Config conf = new Config();
-        conf.setDebug(true);
-        
-        LocalCluster cluster = new LocalCluster();
-        cluster.submitTopology("rolling-demo", conf, builder.createTopology());
-        Thread.sleep(10000);
-        
-        cluster.shutdown();
+        conf.setNumWorkers(10);
+        conf.setMaxSpoutPending(5000);
+        StormSubmitter ss = new StormSubmitter();
+        try {
+			ss.submitTopology("rolling-demo", conf, builder.createTopology());
+		} catch (AlreadyAliveException e) {
+			e.printStackTrace();
+		} catch (InvalidTopologyException e) {
+			e.printStackTrace();
+		}                
         
     }    
 }
